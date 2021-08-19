@@ -1,0 +1,55 @@
+---
+- name: Install dependencies
+  hosts: localhost
+  tasks:
+    - name: use custom apt file
+      copy:
+        dest: /etc/apt/sources.list
+        content: |
+          deb http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
+          deb-src http://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
+
+          deb http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
+          deb-src http://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
+
+          deb http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
+          deb-src http://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
+
+          deb http://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse
+          deb-src http://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse
+
+          deb http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
+          deb-src http://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
+    - name: update
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+        force_apt_get: true
+        upgrade: 'yes'
+        package:
+          - tmux
+          - htop
+          - zsh
+          - openvpn
+          - privoxy
+          - trojan
+          - dnsmasq
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+- name: user dev
+  hosts: localhost
+  tasks:
+    - name: sudo password-less
+      copy:
+        dest: /etc/sudoers.d/dev
+        content: |
+          %dev ALL=(ALL:ALL) NOPASSWD:ALL
+- name: Setup systemctl
+  hosts: localhost
+  remote_user: dev
+  tasks:
+    - name: get systemctl
+      command: git clone git@github.com:DamionGans/ubuntu-wsl2-systemd-script.git ~/.ubuntu-wsl2-systemd-script
