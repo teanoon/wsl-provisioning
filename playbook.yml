@@ -44,6 +44,8 @@
 - name: user dev
   hosts: localhost
   tasks:
+    - name: chsh
+      command: chsh -s $(which zsh)
     - name: sudo password-less
       copy:
         dest: /etc/sudoers.d/dev
@@ -53,7 +55,11 @@
   hosts: localhost
   tasks:
     - name: get systemctl
-      command: sudo -u dev git clone git@github.com:DamionGans/ubuntu-wsl2-systemd-script.git ~/.ubuntu-wsl2-systemd-script
+      become: yes
+      become_user: dev
+      git:
+        repo: https://github.com/DamionGans/ubuntu-wsl2-systemd-script.git
+        dest: ~/.ubuntu-wsl2-systemd-script
     - name: start with systemctl
       blockinfile:
         path: /etc/zsh/zshenv
@@ -67,3 +73,20 @@
 - name: zsh setup
   hosts: localhost
   remote_user: dev
+  tasks:
+    - name: get oh-my-zsh
+      git:
+        repo: https://github.com/ohmyzsh/ohmyzsh.git
+        dest: ~/.ohmyzsh
+    - name: install zsh-syntax-highlighting
+      git:
+        repo: https://github.com/zsh-users/zsh-syntax-highlighting.git
+        dest: ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    - name: install zsh-completions
+      git:
+        repo: https://github.com/zsh-users/zsh-completions.git
+        dest: ~/.oh-my-zsh/custom/plugins/zsh-completions
+    - name: install zsh-autosuggestions
+      git:
+        repo: https://github.com/zsh-users/zsh-autosuggestions.git
+        dest: ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
