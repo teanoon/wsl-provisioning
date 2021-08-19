@@ -26,6 +26,8 @@
         cache_valid_time: 3600
         force_apt_get: true
         upgrade: 'yes'
+    - name: install
+      apt:
         package:
           - tmux
           - htop
@@ -49,7 +51,19 @@
           %dev ALL=(ALL:ALL) NOPASSWD:ALL
 - name: Setup systemctl
   hosts: localhost
-  remote_user: dev
   tasks:
     - name: get systemctl
-      command: git clone git@github.com:DamionGans/ubuntu-wsl2-systemd-script.git ~/.ubuntu-wsl2-systemd-script
+      command: sudo -u dev git clone git@github.com:DamionGans/ubuntu-wsl2-systemd-script.git ~/.ubuntu-wsl2-systemd-script
+    - name: start with systemctl
+      blockinfile:
+        path: /etc/zsh/zshenv
+        insertafter: EOF
+        content: |
+          # Start or enter a PID namespace in WSL2
+          if [[ $0 == -* ]]
+          then
+              source /usr/sbin/start-systemd-namespace
+          fi
+- name: zsh setup
+  hosts: localhost
+  remote_user: dev
