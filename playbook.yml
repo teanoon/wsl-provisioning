@@ -45,7 +45,7 @@
   hosts: localhost
   tasks:
     - name: chsh
-      command: chsh -s $(which zsh)
+      command: chsh -s /usr/bin/zsh
     - name: sudo password-less
       copy:
         dest: /etc/sudoers.d/dev
