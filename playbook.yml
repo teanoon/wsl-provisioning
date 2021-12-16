@@ -44,8 +44,14 @@
 - name: user dev
   hosts: localhost
   tasks:
-    - name: chsh
-      command: chsh -s /usr/bin/zsh
+    - name: create user
+      user:
+        name: dev
+        password: dev
+        groups:
+          - docker
+          - sudo
+        shell: /usr/bin/zsh
     - name: sudo password-less
       copy:
         dest: /etc/sudoers.d/dev
@@ -90,3 +96,33 @@
       git:
         repo: https://github.com/zsh-users/zsh-autosuggestions.git
         dest: ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+- name: docker, minikube and cuda
+  hosts: localhost
+  remote_user: dev
+  tasks:
+    - name: install minikube
+      ansible.builtin.shell: |
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    - name: install docker
+      ansible.builtin.shell: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo apt-key fingerprint 0EBFCD88
+        sudo add-apt-repository \
+          "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) \
+          stable"
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.27.1/docker-compose-$(uname -s)-$(uname -m)" \
+            -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+    - name: install cuda
+      ansible.builtin.shell: |
+        distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+        curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+        curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+        sudo apt-get update
+        sudo apt-get install -y nvidia-docker2
+        sudo systemctl daemon-reload
+        sudo systemctl restart docker
